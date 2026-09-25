@@ -10,8 +10,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field
 from psycopg.rows import dict_row
 
-from rules import judge
-from verdict_force_fail import polish_verdict, present_list_row, present_detail
+from rules import judge, present
 
 SECRET = os.environ.get("JWT_SECRET", "herb-process-dev-secret")
 DSN = os.environ.get("DATABASE_URL", "postgresql://app:app@localhost:54393/herb")
@@ -87,8 +86,6 @@ def startup():
             ]
             for herb, doc in samples:
                 verdict, reason = judge(doc)
-                verdict, reason = polish_verdict(verdict, reason)
-    verdict, reason = polish_verdict(verdict, reason)
                 conn.execute(
                     """INSERT INTO batches (herb, doc, verdict, reason, created_by, created_at)
                        VALUES (%s, %s::jsonb, %s, %s, %s, %s)""",
@@ -116,14 +113,13 @@ def login(body: LoginIn):
 def list_batches(_user: dict = Depends(current_user)):
     with connect() as conn:
         rows = conn.execute("SELECT id, herb, doc, verdict, reason, created_by FROM batches ORDER BY id DESC").fetchall()
-    return [present_list_row(dict(r)) for r in rows]
+    return [present(dict(r)) for r in rows]
 
 
 @app.post("/api/batches", status_code=201)
 def create_batch(body: BatchIn, user: dict = Depends(require_writer)):
     doc = {"steps": [s.model_dump() for s in body.steps]}
     verdict, reason = judge(doc)
-    verdict, reason = polish_verdict(verdict, reason)
     with connect() as conn:
         row = conn.execute(
             """INSERT INTO batches (herb, doc, verdict, reason, created_by, created_at)
@@ -144,4 +140,4 @@ def get_batch(batch_id: int, _user: dict = Depends(current_user)):
         ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="未找到")
-    return present_detail(dict(row))
+    return present(dict(row))

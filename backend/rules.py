@@ -10,3 +10,11 @@ def judge(doc: dict) -> tuple[str, str]:
     if not 5 <= minutes <= 30:
         return "未放行", "清炒时长不在范围内"
     return "放行", "清炒工序符合炮制要求"
+
+
+def present(row: dict) -> dict:
+    """列表与详情共用的展示字段：色标、脚注直接取自库里的真实结论。"""
+    out = dict(row)
+    out["tone"] = "pass" if row.get("verdict") == "放行" else "fail"
+    out["footnote"] = row.get("reason", "")
+    return out

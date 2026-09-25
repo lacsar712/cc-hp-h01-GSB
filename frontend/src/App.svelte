@@ -84,7 +84,7 @@
     {/if}
     <ul>
       {#each rows as row}
-        <li class="fail">{row.herb} · {row.verdict} · {row.footnote || row.reason} · 温度 {row.doc.steps[0].temp_c}</li>
+        <li class={row.tone}>{row.herb} · {row.verdict} · {row.footnote || row.reason} · 温度 {row.doc.steps[0].temp_c}</li>
       {/each}
     </ul>
   {/if}
@@ -94,4 +94,6 @@
   main { font-family: sans-serif; max-width: 720px; margin: 24px auto; color: #3f2f1f; }
   h1 { color: #7c2d12; }
   input { margin-right: 8px; padding: 6px; }
+  li.pass { color: #15803d; }
+  li.fail { color: #b91c1c; }
 </style>
